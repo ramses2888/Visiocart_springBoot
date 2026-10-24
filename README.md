@@ -1,50 +1,105 @@
-# VISIOCART - Backend API 🛒🤖
+# 🛒🤖 VISIOCART - Backend API
 
-API RESTful desarrollada en **Spring Boot** para el sistema de carrito de compras inteligente **VISIOCART**. El sistema permite la gestión del catálogo de productos y el procesamiento de ventas en tiempo real mediante un flujo transaccional Maestro-Detalle.
-
----
-
-## 🛠️ Tecnologías Utilizadas
-
-* **Lenguaje:** Java 17+
-* **Framework:** Spring Boot (Spring Web, Spring Data JPA)
-* **Base de Datos:** MySQL 8.0
-* **Gestor de Dependencias:** Maven
-* **Servidor de Aplicaciones:** Apache Tomcat integrado (Puerto `8081`)
-* **Herramienta de Pruebas:** Postman
+> API RESTful desarrollada con **Spring Boot** y **MySQL** para el sistema de carrito de compras inteligente **VISIOCART**. Gestiona el catálogo de productos y procesa ventas mediante un flujo transaccional Maestro-Detalle.
 
 ---
 
-## 🗄️ Modelo de Base de Datos
+## 🛠️ Tecnologías y Herramientas
 
-El núcleo transaccional del sistema está estructurado en 3 tablas principales:
-
-1. **`PRODUCTO`**: Almacena el catálogo de artículos disponibles (nombre, precio, peso esperado, categoría).
-2. **`TRANSACCION`**: Registra la cabecera de la compra (cliente, empleado/cajero, fecha/hora y total neto calculado).
-3. **`DETALLE_TRANSACCION`**: Tabla intermedia con clave primaria compuesta (`@Embeddable`) que vincula los productos comprados con su respectiva transacción, guardando cantidad y precio unitario al momento de la venta.
+| Tecnología | Descripción |
+| :--- | :--- |
+| **Java 17+** | Lenguaje de programación principal |
+| **Spring Boot 3** | Framework backend (Spring Web, Spring Data JPA) |
+| **MySQL 8.0** | Base de datos relacional |
+| **Hibernate / ORM** | Mapeo objeto-relacional |
+| **Maven** | Gestor de dependencias y construcción |
+| **Tomcat** | Servidor web embebido (Puerto `8081`) |
+| **Postman** | Cliente de pruebas de arquitectura API |
 
 ---
 
-## ⚙️ Configuración del Entorno
+## 🗄️ Modelo de Datos (3 Tablas)
 
-### 1. Base de Datos
-Asegúrate de tener creada la base de datos en MySQL Workbench:
+El diseño del backend sigue un enfoque simplificado de **3 tablas clave** para el control de inventario y facturación:
+
+1. **`PRODUCTO`**: Catálogo de ítems disponibles (precio de catálogo, peso esperado en gramos e ID de categoría).
+2. **`TRANSACCION`**: Cabecera de venta (asociada a cliente y cajero, almacena fecha/hora y total neto).
+3. **`DETALLE_TRANSACCION`**: Tabla intermedia con clave compuesta (`@Embeddable`) que vincula ítems a transacciones con su cantidad y precio histórico.
+
+---
+
+## ⚙️ Configuración del Proyecto
+
+### 1. Preparación de la Base de Datos
+Ejecuta la creación del esquema en **MySQL Workbench**:
 ```sql
 CREATE DATABASE visiocart_db;
+```
 
-🚀 Endpoints de la API📦 Gestión de Productos (/api/productos)MétodoEndpointDescripciónGET/api/productosObtener la lista completa de productosGET/api/productos/{id}Consultar un producto específico por su IDPOST/api/productosRegistrar un nuevo producto en el catálogoPUT/api/productos/{id}Actualizar un producto existenteDELETE/api/productos/{id}Eliminar un producto del catálogo💳 Flujo Transaccional de Compra (/api/transacciones)MétodoEndpointDescripciónPOST/api/transaccionesProcesar una compra multi-producto y calcular el total automáticamente🧪 Ejemplos de Peticiones (Postman)Nota: Todas las peticiones POST y PUT requieren el encabezado Content-Type: application/json y el encabezado Host: localhost:8081 activo.1. Crear Producto (POST /api/productos)JSON{
+### 2. Variables de Entorno (`application.properties`)
+Verifica la configuración en `src/main/resources/application.properties`:
+
+```properties
+server.port=8081
+
+spring.datasource.url=jdbc:mysql://localhost:3306/visiocart_db?useSSL=false&serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=TU_CONTRASEÑA_AQUI
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+```
+
+---
+
+## 🚀 Endpoints de la API
+
+### 📦 Módulo de Productos (`/api/productos`)
+
+| Método | Ruta | Descripción |
+| :---: | :--- | :--- |
+| `GET` | `/api/productos` | Obtener catálogo completo de productos |
+| `GET` | `/api/productos/{id}` | Buscar producto por ID |
+| `POST` | `/api/productos` | Crear un nuevo producto en catálogo |
+| `PUT` | `/api/productos/{id}` | Actualizar datos de un producto |
+| `DELETE` | `/api/productos/{id}` | Eliminar producto por ID |
+
+### 💳 Módulo Transaccional (`/api/transacciones`)
+
+| Método | Ruta | Descripción |
+| :---: | :--- | :--- |
+| `POST` | `/api/transacciones` | Procesar compra multi-producto y calcular `totalNeto` |
+
+---
+
+## 🧪 Estructura de Peticiones en Postman
+
+> ⚠️ **Importante:** Asegúrate de incluir el encabezado `Content-Type: application/json` y tener habilitado el header `Host` en Postman.
+
+### 1. Registrar Producto (`POST /api/productos`)
+```json
+{
   "nombre": "Leche Entera 1L",
   "precioCatalogo": 4200.00,
   "pesoEsperado": 1030.5,
   "idCategoria": 1
 }
-2. Actualizar Producto (PUT /api/productos/1)JSON{
+```
+
+### 2. Actualizar Producto (`PUT /api/productos/1`)
+```json
+{
   "nombre": "Leche Entera 1L (Oferta)",
   "precioCatalogo": 3900.00,
   "pesoEsperado": 1030.5,
   "idCategoria": 1
 }
-3. Registrar Transacción Multi-Producto (POST /api/transacciones)JSON{
+```
+
+### 3. Registrar Compra Multi-Producto (`POST /api/transacciones`)
+```json
+{
   "idCliente": 1,
   "idEmpleado": 1,
   "items": [
@@ -58,4 +113,11 @@ CREATE DATABASE visiocart_db;
     }
   ]
 }
-👥 AutorRamsés Arnold Meneses Proyecto Académico - VISIOCART 2026
+```
+
+---
+
+## 👤 Autor
+
+* **Ramsés Arnald Meneses**
+* **Proyecto Académico:** VISIOCART 2026
