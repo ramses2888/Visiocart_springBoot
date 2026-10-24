@@ -119,5 +119,6 @@ spring.jpa.properties.hibernate.format_sql=true
 
 ## 👤 Autor
 
-* **Ramsés Arnald Meneses**
+* **Ramsés Arnold Meneses**
+* Ficha: 3336163
 * **Proyecto Académico:** VISIOCART 2026
